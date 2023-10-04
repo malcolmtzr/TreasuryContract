@@ -20,12 +20,14 @@ contract Treasury is Ownable {
     event UpdateDisburseInterval(uint256 indexed _days);
     event DepositPurseToTreasury(address indexed _sender, uint256 indexed _time, uint256 indexed _amount);
     event DisburseToPurseStaking(uint256 indexed _time, uint256 indexed _amount);
+    event ReturnToken(address indexed _recipient, uint256 indexed _amount);
 
     constructor() {
         isApproved = false;
     }
 
     function updateStakingAddress(address _addr) external onlyOwner {
+        require(_addr != address(0), "Cannot be a zero address");
         PURSE_STAKING = _addr;
     }
 
@@ -66,8 +68,10 @@ contract Treasury is Ownable {
         emit DisburseToPurseStaking(lastDisbursementTimestamp, disburseAmount);
     }
 
-    function returnToken(address _token, uint256 _amount, address _to) external onlyOwner {
+    function returnToken(address _token, address _to, uint256 _amount) external onlyOwner {
         require(_to != address(0), "Cannot be a zero address");
+        require(_amount > 0, "Amount must be more than 0");
         IERC20(_token).safeTransfer(_to, _amount);
+        emit ReturnToken(_to, _amount);
     }
 }
