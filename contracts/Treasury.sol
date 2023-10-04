@@ -14,7 +14,7 @@ contract Treasury is Ownable {
     uint256 public disburseHistoricTotal;
     uint256 public lastDepositTimestamp;
     uint256 public lastDisbursementTimestamp;
-    uint256 public disburseInterval = 30 days;
+    uint256 public disburseInterval;
     bool public isApproved;
 
     event UpdateDisburseInterval(uint256 indexed _days);
@@ -24,6 +24,7 @@ contract Treasury is Ownable {
 
     constructor() {
         isApproved = false;
+        disburseInterval = 30 days;
     }
 
     function updateStakingAddress(address _addr) external onlyOwner {
