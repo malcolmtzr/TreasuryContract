@@ -6,23 +6,27 @@
 // global scope, and execute the script.
 const hre = require("hardhat");
 
+/*
+IMPORTANT:
+For testing on testnet use the following:
+    //testnet
+    //PURSE: 0xd66c6B4F0be8CE5b39D52E0Fd1344c389929B378 (actually ETH)
+    //PURSE_STAKING = 0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966 (actually account2)
+    
+BEFORE DEPLOYING TO MAINNET, CHANGE THE FOLLOWING
+    //mainnet
+    //PURSE: 0x29a63F4B209C29B4DC47f06FFA896F32667DAD2C
+    //PURSE_STAKING = 0xFb1D31a3f51Fb9422c187492D8EA14921d6ea6aE
+*/
+
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  const [deployer] = await hre.ethers.getSigners();
+  console.log(`Deployer: ${deployer.address}`);
 
-  const lockedAmount = hre.ethers.parseEther("0.001");
-
-  const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
-
-  await lock.waitForDeployment();
-
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+  const Treasury = await hre.ethers.getContractFactory("Treasury");
+  const treasury = await Treasury.deploy();
+  await treasury.waitForDeployment();
+  console.log(`Contract deployed at ${treasury.target}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
