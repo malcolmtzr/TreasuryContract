@@ -177,6 +177,20 @@ describe("Treasury Tests", function () {
 
         it("Should be able to return tokens from treasury", async () => {
             //return remaining deposit
+            const token = await hre.ethers.getContractAt(
+                "ETH",
+                await treasury.PURSE(),
+                signer
+            );
+            const treasuryBalanceBefore = await token.balanceOf(treasuryTestnetAddress);
+            const tx = await treasury.returnToken(
+                await treasury.PURSE(),
+                otherAccount.address,
+                treasuryBalanceBefore
+            );
+            await tx.wait();
+            const treasuryBalanceAfter = await token.balanceOf(treasuryTestnetAddress);
+            expect(treasuryBalanceAfter).to.equal(BigInt(0));
         })
 
         it("Should not have any tokens left to disburse", async () => {
