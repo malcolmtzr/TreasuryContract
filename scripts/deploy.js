@@ -19,6 +19,10 @@ BEFORE DEPLOYING TO MAINNET, CHANGE THE FOLLOWING
     //PURSE_STAKING = 0xFb1D31a3f51Fb9422c187492D8EA14921d6ea6aE
 */
 
+//npx hardhat compile
+//npx hardhat run --network bsctestnet scripts/deploy.js
+//npx hardhat verify --network bsctestnet 0x...
+
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   console.log(`Deployer: ${deployer.address}`);

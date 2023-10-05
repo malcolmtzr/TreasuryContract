@@ -12,7 +12,9 @@ contract Treasury is Ownable {
     address public PURSE_STAKING = 0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966;
     uint256 public depositHistoricTotal;
     uint256 public disburseHistoricTotal;
+    uint256 public lastDepositedAmount;
     uint256 public lastDepositTimestamp;
+    uint256 public lastDisbursedAmount;
     uint256 public lastDisbursementTimestamp;
     uint256 public disburseInterval;
     bool public isApproved;
@@ -49,6 +51,7 @@ contract Treasury is Ownable {
     function depositPurseToTreasury(uint256 _amount) external onlyOwner {
         require(_amount > 0, "Amount must be more than 0");
         IERC20(PURSE).safeTransferFrom(msg.sender, address(this), _amount);
+        lastDepositedAmount = _amount;
         lastDepositTimestamp = block.timestamp;
         depositHistoricTotal += _amount;
         emit DepositPurseToTreasury(msg.sender, lastDepositTimestamp, _amount);
@@ -63,7 +66,7 @@ contract Treasury is Ownable {
         require(treasuryBalance > 0, "Insufficient tokens in Treasury");
         uint256 disburseAmount = treasuryBalance / 12;
         IERC20(PURSE).safeTransfer(PURSE_STAKING, disburseAmount);
-
+        lastDisbursedAmount = disburseAmount;
         lastDisbursementTimestamp = block.timestamp;
         disburseHistoricTotal += disburseAmount;
         emit DisburseToPurseStaking(lastDisbursementTimestamp, disburseAmount);
