@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Treasury is Ownable {
     using SafeERC20 for IERC20;
 
-    address public constant PURSE = 0xd66c6B4F0be8CE5b39D52E0Fd1344c389929B378;
-    address public PURSE_STAKING = 0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966;
+    address public constant PURSE = 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd;
+    address public PURSE_STAKING = 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd;
     uint256 public depositHistoricTotal;
     uint256 public disburseHistoricTotal;
     uint256 public lastDepositedAmount;
@@ -17,7 +17,6 @@ contract Treasury is Ownable {
     uint256 public lastDisbursedAmount;
     uint256 public lastDisbursementTimestamp;
     uint256 public disburseInterval;
-    bool public isApproved;
 
     event UpdateDisburseInterval(uint256 indexed _days);
     event DepositPurseToTreasury(address indexed _sender, uint256 indexed _time, uint256 indexed _amount);
@@ -25,7 +24,6 @@ contract Treasury is Ownable {
     event ReturnToken(address indexed _recipient, uint256 indexed _amount);
 
     constructor() {
-        isApproved = false;
         disburseInterval = 30 days;
     }
 
@@ -40,14 +38,6 @@ contract Treasury is Ownable {
         emit UpdateDisburseInterval(_days);
     }
 
-    // Allow Treasury to move PURSE from owner.
-    // This only needs to be called once.
-    function approvePurse(uint256 _decimal) external onlyOwner {
-        require(isApproved == false, "Already approved");
-        IERC20(PURSE).approve(address(this), 115792089237316195423570985008687907853269984665640564039457 * 10 ** _decimal);
-        isApproved = true;
-    }
-
     function depositPurseToTreasury(uint256 _amount) external onlyOwner {
         require(_amount > 0, "Amount must be more than 0");
         IERC20(PURSE).safeTransferFrom(msg.sender, address(this), _amount);
@@ -57,14 +47,30 @@ contract Treasury is Ownable {
         emit DepositPurseToTreasury(msg.sender, lastDepositTimestamp, _amount);
     }
 
-    function disburseToPurseStaking() external onlyOwner {
+    function currentDefaultDisburseAmount() public view onlyOwner returns (uint256) {
+        uint256 res = lastDepositedAmount / 12;
+        return res;
+    }
+
+    //set _amount as 0 to disburse default amount based on lastDepositedAmount
+    function disburseToPurseStaking(uint256 _amount) external onlyOwner {
         require(
             block.timestamp > lastDisbursementTimestamp + disburseInterval,
             "Disbursement interval not reached."
         );
         uint256 treasuryBalance = IERC20(PURSE).balanceOf(address(this));
-        require(treasuryBalance > 0, "Insufficient tokens in Treasury");
-        uint256 disburseAmount = treasuryBalance / 12;
+        require(treasuryBalance > 0, "Insufficient deposit in Treasury");
+        require(_amount <= treasuryBalance, "Input disburse amount exceeds remaining deposit in Treasury");
+        uint256 disburseAmount;
+        if (_amount > 0) {
+            disburseAmount = _amount;
+        } else {
+            require(
+                treasuryBalance >= currentDefaultDisburseAmount(),
+                "Treasury remaining deposit is less than default disburse amount"
+            );
+            disburseAmount = currentDefaultDisburseAmount();
+        }
         IERC20(PURSE).safeTransfer(PURSE_STAKING, disburseAmount);
         lastDisbursedAmount = disburseAmount;
         lastDisbursementTimestamp = block.timestamp;

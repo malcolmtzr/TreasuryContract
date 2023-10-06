@@ -10,7 +10,7 @@ const hre = require("hardhat");
 IMPORTANT:
 For testing on testnet use the following:
     //testnet
-    //PURSE: 0xd66c6B4F0be8CE5b39D52E0Fd1344c389929B378 (actually ETH)
+    //PURSE: 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd (actually USDT)
     //PURSE_STAKING = 0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966 (actually account2)
     
 BEFORE DEPLOYING TO MAINNET, CHANGE THE FOLLOWING
