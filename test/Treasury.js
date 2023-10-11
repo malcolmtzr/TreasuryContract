@@ -6,7 +6,7 @@ const BEP20ABI = require("./BEP20.json");
 //npx hardhat test --network bsctestnet
 describe("Treasury Tests", function () {
     let treasury;
-    const treasuryTestnetAddress = "0x4b377Ab63DB0d3572be8aB009BC1D98a8AA77799";
+    const treasuryTestnetAddress = "0xD40C1c7258Ba7ca00202e7D7e7032b53D295D4E8";
     let signer;
     let otherAccount;
 
@@ -76,14 +76,14 @@ describe("Treasury Tests", function () {
     })
 
     describe("Owner test cases", function () {
-        it("check allowance", async () => {
+        it("Should have approval", async () => {
             const token = await hre.ethers.getContractAt(
                 BEP20ABI,
                 await treasury.PURSE(),
                 signer
             );
             const res = await token.allowance(signer.address, treasuryTestnetAddress);
-            console.log(res)
+            expect(res).not.equal(BigInt(0))
         })
 
         it("Should be the correct owner", async () => {
@@ -113,7 +113,7 @@ describe("Treasury Tests", function () {
             const treasuryBalanceBefore = await token.balanceOf(treasuryTestnetAddress);
             const lastDepositedAmountBefore = await treasury.lastDepositedAmount();
             const depositHistoricTotalBefore = await treasury.depositHistoricTotal();
-            const lastDepositTimeStampBefore = await treasury.lastDepositTimeStamp();
+            const lastDepositTimeStampBefore = await treasury.lastDepositTimestamp();
 
             const depositAmount = ethers.parseEther("1.2")
             const tx = await treasury.depositPurseToTreasury(
@@ -124,13 +124,19 @@ describe("Treasury Tests", function () {
             const treasuryBalanceAfter = await token.balanceOf(treasuryTestnetAddress);
             const lastDepositedAmountAfter = await treasury.lastDepositedAmount();
             const depositHistoricTotalAfter = await treasury.depositHistoricTotal();
-            const lastDepositTimeStampAfter = await treasury.lastDepositTimeStamp();
+            const lastDepositTimeStampAfter = await treasury.lastDepositTimestamp();
 
             expect(treasuryBalanceAfter).not.equal(treasuryBalanceBefore);
             expect(lastDepositedAmountAfter).not.equal(lastDepositedAmountBefore);
             expect(lastDepositedAmountAfter).to.equal(depositAmount);
             expect(depositHistoricTotalAfter).to.equal(depositHistoricTotalBefore + depositAmount);
             expect(lastDepositTimeStampAfter).not.equal(lastDepositTimeStampBefore);
+        })
+
+        it("Should have a default disburse amount", async () => {
+            const defaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
+            console.log(defaultDisburseAmount)
+            expect(defaultDisburseAmount).not.equal(BigInt(0))
         })
 
         it("Should be able to disburse once after deploying", async () => {
@@ -181,11 +187,11 @@ describe("Treasury Tests", function () {
         })
 
         it("Should not be able to disburse due to input amount exceeding balance", async () => {
-
-        })
-
-        it("Should not be able to disburse due to reamining deposit less than default disburse amount", asycn() => {
-
+            await expect(
+                treasury.disburseToPurseStaking(
+                    ethers.parseEther("100")
+                )
+            ).to.be.revertedWith("Input disburse amount exceeds remaining deposit in Treasury")
         })
 
         it("Should be able to disburse after the interval", async () => {
@@ -212,9 +218,27 @@ describe("Treasury Tests", function () {
             const lastDisbursementTimestampAfter = await treasury.lastDisbursementTimestamp();
 
             expect(stakingBalanceAfter).not.equal(stakingBalanceBefore)
-            expect(lastDisbursedAmountAfter).not.equal(lastDisbursedAmountBefore);
+            expect(lastDisbursedAmountAfter).to.equal(lastDisbursedAmountBefore);
             expect(disburseHistoricTotalAfter).not.equal(disburseHistoricTotalBefore);
             expect(lastDisbursementTimestampAfter).not.equal(lastDisbursementTimestampBefore);
+        })
+
+        it("Should not be able to disburse due to remaining deposit less than default disburse amount", async () => {
+            const token = await hre.ethers.getContractAt(
+                BEP20ABI,
+                await treasury.PURSE(),
+                signer
+            );
+            const treasuryBalance = await token.balanceOf(treasuryTestnetAddress);
+            const tx = await treasury.returnToken(
+                await treasury.PURSE(),
+                signer.address,
+                BigInt(treasuryBalance) - BigInt(ethers.parseEther("0.05"))
+            )
+            await tx.wait();
+            await expect(
+                treasury.disburseToPurseStaking(0)
+            ).to.be.revertedWith("Treasury remaining deposit is less than default disburse amount")
         })
 
         it("Should be able to return tokens from treasury", async () => {
@@ -238,7 +262,7 @@ describe("Treasury Tests", function () {
         it("Should not have any tokens left to disburse", async () => {
             await expect(
                 treasury.disburseToPurseStaking(0)
-            ).to.be.revertedWith("Insufficient tokens in Treasury");
+            ).to.be.revertedWith("Insufficient deposit in Treasury");
         })
     })
 })

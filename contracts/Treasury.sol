@@ -56,7 +56,7 @@ contract Treasury is Ownable {
     function disburseToPurseStaking(uint256 _amount) external onlyOwner {
         require(
             block.timestamp > lastDisbursementTimestamp + disburseInterval,
-            "Disbursement interval not reached."
+            "Disbursement interval not reached"
         );
         uint256 treasuryBalance = IERC20(PURSE).balanceOf(address(this));
         require(treasuryBalance > 0, "Insufficient deposit in Treasury");
