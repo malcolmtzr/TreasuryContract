@@ -6,7 +6,7 @@ const BEP20ABI = require("./BEP20.json");
 //npx hardhat test --network bsctestnet
 describe("Treasury Tests", function () {
     let treasury;
-    const treasuryTestnetAddress = "0xD40C1c7258Ba7ca00202e7D7e7032b53D295D4E8";
+    const treasuryTestnetAddress = "0xaCFd94CF48ef4CB53F7128006B2D708B4ee93dd5";
     let signer;
     let otherAccount;
 

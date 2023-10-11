@@ -47,7 +47,7 @@ contract Treasury is Ownable {
         emit DepositPurseToTreasury(msg.sender, lastDepositTimestamp, _amount);
     }
 
-    function currentDefaultDisburseAmount() public view onlyOwner returns (uint256) {
+    function currentDefaultDisburseAmount() public view returns (uint256) {
         uint256 res = lastDepositedAmount / 12;
         return res;
     }
