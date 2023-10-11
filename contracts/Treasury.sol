@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Treasury is Ownable {
     using SafeERC20 for IERC20;
 
-    address public constant PURSE = 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd;
-    address public PURSE_STAKING = 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd;
+    address public constant PURSE = 0x29a63F4B209C29B4DC47f06FFA896F32667DAD2C;
+    address public PURSE_STAKING = 0xFb1D31a3f51Fb9422c187492D8EA14921d6ea6aE;
     uint256 public depositHistoricTotal;
     uint256 public disburseHistoricTotal;
     uint256 public lastDepositedAmount;
