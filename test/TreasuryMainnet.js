@@ -56,9 +56,9 @@ describe("Treasury Tests", function () {
             ).to.be.revertedWith("Ownable: caller is not the owner");
         })
 
-        it("Non owner should not be able to call disburseToPurseStaking", async () => {
+        it("Non owner should not be able to call ownerDisburseToPurseStaking", async () => {
             await expect(
-                _treasury.disburseToPurseStaking(
+                _treasury.ownerDisburseToPurseStaking(
                     ethers.parseEther("0")
                 )
             ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -155,7 +155,7 @@ describe("Treasury Tests", function () {
             const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
 
             const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-            const tx = await treasury.disburseToPurseStaking(currentDefaultDisburseAmount);
+            const tx = await treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount);
             await tx.wait();
 
             const stakingBalanceAfter = await token.balanceOf(stakingAddress);
@@ -172,7 +172,7 @@ describe("Treasury Tests", function () {
         it("Should not be able to disburse before the interval", async () => {
             const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
             await expect(
-                treasury.disburseToPurseStaking(currentDefaultDisburseAmount)
+                treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount)
             ).to.be.revertedWith("Disbursement interval not reached");
         })
 
@@ -189,7 +189,7 @@ describe("Treasury Tests", function () {
 
         it("Should not be able to disburse due to input amount exceeding balance", async () => {
             await expect(
-                treasury.disburseToPurseStaking(
+                treasury.ownerDisburseToPurseStaking(
                     ethers.parseEther("100")
                 )
             ).to.be.revertedWith("Input disburse amount exceeds remaining deposit in Treasury")
@@ -210,7 +210,7 @@ describe("Treasury Tests", function () {
             const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
 
             const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-            const tx = await treasury.disburseToPurseStaking(currentDefaultDisburseAmount);
+            const tx = await treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount);
             await tx.wait();
 
             const stakingBalanceAfter = await token.balanceOf(stakingAddress);
@@ -238,7 +238,7 @@ describe("Treasury Tests", function () {
             )
             await tx.wait();
             await expect(
-                treasury.disburseToPurseStaking(0)
+                treasury.ownerDisburseToPurseStaking(0)
             ).to.be.revertedWith("Treasury remaining deposit is less than default disburse amount")
         })
 
@@ -262,7 +262,7 @@ describe("Treasury Tests", function () {
 
         it("Should not have any tokens left to disburse", async () => {
             await expect(
-                treasury.disburseToPurseStaking(0)
+                treasury.ownerDisburseToPurseStaking(0)
             ).to.be.revertedWith("Insufficient deposit in Treasury");
         })
     })

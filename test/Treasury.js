@@ -58,7 +58,7 @@ const BEP20ABI = require("./BEP20.json");
 
 //         it("Non owner should not be able to call disburseToPurseStaking", async () => {
 //             await expect(
-//                 _treasury.disburseToPurseStaking(
+//                 _treasury.ownerDisburseToPurseStaking(
 //                     ethers.parseEther("0")
 //                 )
 //             ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -154,7 +154,7 @@ const BEP20ABI = require("./BEP20.json");
 //             const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
 
 //             const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-//             const tx = await treasury.disburseToPurseStaking(currentDefaultDisburseAmount);
+//             const tx = await treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount);
 //             await tx.wait();
 
 //             const stakingBalanceAfter = await token.balanceOf(stakingAddress);
@@ -171,7 +171,7 @@ const BEP20ABI = require("./BEP20.json");
 //         it("Should not be able to disburse before the interval", async () => {
 //             const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
 //             await expect(
-//                 treasury.disburseToPurseStaking(currentDefaultDisburseAmount)
+//                 treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount)
 //             ).to.be.revertedWith("Disbursement interval not reached");
 //         })
 
@@ -188,7 +188,7 @@ const BEP20ABI = require("./BEP20.json");
 
 //         it("Should not be able to disburse due to input amount exceeding balance", async () => {
 //             await expect(
-//                 treasury.disburseToPurseStaking(
+//                 treasury.ownerDisburseToPurseStaking(
 //                     ethers.parseEther("100")
 //                 )
 //             ).to.be.revertedWith("Input disburse amount exceeds remaining deposit in Treasury")
@@ -209,7 +209,7 @@ const BEP20ABI = require("./BEP20.json");
 //             const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
 
 //             const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-//             const tx = await treasury.disburseToPurseStaking(currentDefaultDisburseAmount);
+//             const tx = await treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount);
 //             await tx.wait();
 
 //             const stakingBalanceAfter = await token.balanceOf(stakingAddress);
@@ -237,7 +237,7 @@ const BEP20ABI = require("./BEP20.json");
 //             )
 //             await tx.wait();
 //             await expect(
-//                 treasury.disburseToPurseStaking(0)
+//                 treasury.ownerDisburseToPurseStaking(0)
 //             ).to.be.revertedWith("Treasury remaining deposit is less than default disburse amount")
 //         })
 
@@ -261,7 +261,7 @@ const BEP20ABI = require("./BEP20.json");
 
 //         it("Should not have any tokens left to disburse", async () => {
 //             await expect(
-//                 treasury.disburseToPurseStaking(0)
+//                 treasury.ownerDisburseToPurseStaking(0)
 //             ).to.be.revertedWith("Insufficient deposit in Treasury");
 //         })
 //     })
