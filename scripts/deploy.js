@@ -5,7 +5,7 @@
 // will compile your contracts, add the Hardhat Runtime Environment's members to the
 // global scope, and execute the script.
 const hre = require("hardhat");
-
+const { upgrades } = require("hardhat");
 /*
 IMPORTANT:
 For testing on testnet use the following:
@@ -28,9 +28,15 @@ async function main() {
   console.log(`Deployer: ${deployer.address}`);
 
   const Treasury = await hre.ethers.getContractFactory("Treasury");
-  const treasury = await Treasury.deploy();
+  const treasury = await upgrades.deployProxy(
+    Treasury,
+    [
+      "0x2027E055201E26b1bFE33Eb923b3fdb7E6f30807",
+      "0x9d356F4DD857fFeF5B5d48DCf30eE4d9574d708D"
+    ]
+  );
   await treasury.waitForDeployment();
-  console.log(`Contract deployed at ${treasury.target}`);
+  console.log(`Contract deployed at ${await treasury.getAddress()}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
