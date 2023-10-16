@@ -4,7 +4,7 @@ const hre = require("hardhat");
 const BEP20ABI = require("./BEP20.json");
 
 // npx hardhat test test/Treasury.js --network bsctestnet
-describe("Treasury Tests", function () {
+describe("Treasury Role Access Tests", function () {
     let treasury;
     const treasuryTestnetAddress = "0xcE66C826a49117AD289E2f2D7B137debC53E907d";
     let owner;
