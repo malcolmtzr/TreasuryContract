@@ -1,0 +1,392 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x4e7f139aC0cf86DF860b42Ede68a5244be870218",
+      "txHash": "0x216d03d6b3547ed1165124ad42eec3b77aca01d828412a19c7320963aad69243",
+      "kind": "uups"
+    },
+    {
+      "address": "0x45727Ba4B097a8Ae5EdF612F3e96bf347f82b0F1",
+      "txHash": "0x6b562ed04a5da1d82b2c2ee3e0ecdb6c1b418aa62fc73d1c5d626dabe5da2af6",
+      "kind": "uups"
+    },
+    {
+      "address": "0xcE66C826a49117AD289E2f2D7B137debC53E907d",
+      "txHash": "0xda690c4bd3330dd0a1188c9b85f088d32ee5be1b8071205f0fffdfaee99a4abb",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "f46a9aa6ffa7ce4056def8af72e5aefe629ecdd86a227d420c7a282100da0527": {
+      "address": "0x2233D167610e2E0C729fa71f0534D7AF825a7F02",
+      "txHash": "0x79bcd4ccf2e8a470bc5bd1401408188a95db40f480b68380677f2d3e46537895",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "Governable",
+            "src": "contracts/Governable.sol:29"
+          },
+          {
+            "label": "PURSE_STAKING",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_address",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:15"
+          },
+          {
+            "label": "depositHistoricTotal",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:16"
+          },
+          {
+            "label": "disburseHistoricTotal",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:17"
+          },
+          {
+            "label": "lastDepositedTreasuryBalance",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:20"
+          },
+          {
+            "label": "lastDisbursementTimestamp",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:22"
+          },
+          {
+            "label": "disburseInterval",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:23"
+          },
+          {
+            "label": "range",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AccessControlStorage)32_storage": {
+            "label": "struct AccessControlUpgradeable.AccessControlStorage",
+            "members": [
+              {
+                "label": "_roles",
+                "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)47_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)25_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "hasRole",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.AccessControl": [
+            {
+              "contract": "AccessControlUpgradeable",
+              "label": "_roles",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "0d360bf50a28e094c8f2baf4d2b05d7c1bdc747483e4528a507d2e4a35575ea2": {
+      "address": "0x0FDaCc586bD8031dcC5e8097234cCa5e69c11674",
+      "txHash": "0xa9ff584f7b6e4f535a929ffdf652265aa3f4682c4a3f1aa81220baf735fc8ab7",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "Governable",
+            "src": "contracts/Governable.sol:29"
+          },
+          {
+            "label": "PURSE_STAKING",
+            "offset": 0,
+            "slot": "49",
+            "type": "t_address",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:15"
+          },
+          {
+            "label": "depositHistoricTotal",
+            "offset": 0,
+            "slot": "50",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:16"
+          },
+          {
+            "label": "disburseHistoricTotal",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:17"
+          },
+          {
+            "label": "lastDepositedTreasuryBalance",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:20"
+          },
+          {
+            "label": "lastDisbursementTimestamp",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:22"
+          },
+          {
+            "label": "disburseInterval",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:23"
+          },
+          {
+            "label": "range",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_uint256",
+            "contract": "Treasury",
+            "src": "contracts/Treasury.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AccessControlStorage)32_storage": {
+            "label": "struct AccessControlUpgradeable.AccessControlStorage",
+            "members": [
+              {
+                "label": "_roles",
+                "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)47_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)25_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "hasRole",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.AccessControl": [
+            {
+              "contract": "AccessControlUpgradeable",
+              "label": "_roles",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
