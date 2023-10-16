@@ -6,7 +6,7 @@
 // //npx hardhat test --network bscmainnet
 // describe("Treasury Tests", function () {
 //     let treasury;
-//     const treasuryMainnetTestAddress = "0x283b2cc8d51362d19b39571d0364a7Dffc7c1FcB";
+//     const treasuryMainnetAddress = "0x283b2cc8d51362d19b39571d0364a7Dffc7c1FcB";
 //     let signer;
 //     let otherAccount;
 
@@ -16,7 +16,7 @@
 //         otherAccount = await hre.ethers.getSigner("0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966")
 //         treasury = await hre.ethers.getContractAt(
 //             "Treasury",
-//             treasuryMainnetTestAddress,
+//             treasuryMainnetAddress,
 //             _signer
 //         );
 //     })
@@ -26,7 +26,7 @@
 //         beforeEach(async () => {
 //             _treasury = await hre.ethers.getContractAt(
 //                 "Treasury",
-//                 treasuryMainnetTestAddress,
+//                 treasuryMainnetAddress,
 //                 otherAccount
 //             );
 //         })
@@ -82,7 +82,7 @@
 //                 await treasury.PURSE(),
 //                 signer
 //             );
-//             const res = await token.allowance(signer.address, treasuryMainnetTestAddress);
+//             const res = await token.allowance(signer.address, treasuryMainnetAddress);
 //             console.log(res)
 //             expect(res).not.equal(BigInt(0))
 //         })
@@ -111,7 +111,7 @@
 //                 signer
 //             );
 
-//             const treasuryBalanceBefore = await token.balanceOf(treasuryMainnetTestAddress);
+//             const treasuryBalanceBefore = await token.balanceOf(treasuryMainnetAddress);
 //             const lastDepositedAmountBefore = await treasury.lastDepositedAmount();
 //             const depositHistoricTotalBefore = await treasury.depositHistoricTotal();
 //             const lastDepositTimeStampBefore = await treasury.lastDepositTimestamp();
@@ -122,7 +122,7 @@
 //             );
 //             await tx.wait();
 
-//             const treasuryBalanceAfter = await token.balanceOf(treasuryMainnetTestAddress);
+//             const treasuryBalanceAfter = await token.balanceOf(treasuryMainnetAddress);
 //             const lastDepositedAmountAfter = await treasury.lastDepositedAmount();
 //             const depositHistoricTotalAfter = await treasury.depositHistoricTotal();
 //             const lastDepositTimeStampAfter = await treasury.lastDepositTimestamp();
@@ -230,7 +230,7 @@
 //                 await treasury.PURSE(),
 //                 signer
 //             );
-//             const treasuryBalance = await token.balanceOf(treasuryMainnetTestAddress);
+//             const treasuryBalance = await token.balanceOf(treasuryMainnetAddress);
 //             const tx = await treasury.returnToken(
 //                 await treasury.PURSE(),
 //                 signer.address,
@@ -249,14 +249,14 @@
 //                 await treasury.PURSE(),
 //                 signer
 //             );
-//             const treasuryBalanceBefore = await token.balanceOf(treasuryMainnetTestAddress);
+//             const treasuryBalanceBefore = await token.balanceOf(treasuryMainnetAddress);
 //             const tx = await treasury.returnToken(
 //                 await treasury.PURSE(),
 //                 otherAccount.address,
 //                 treasuryBalanceBefore
 //             );
 //             await tx.wait();
-//             const treasuryBalanceAfter = await token.balanceOf(treasuryMainnetTestAddress);
+//             const treasuryBalanceAfter = await token.balanceOf(treasuryMainnetAddress);
 //             expect(treasuryBalanceAfter).to.equal(BigInt(0));
 //         })
 
