@@ -2,19 +2,20 @@ const { assert, expect } = require("chai");
 require("dotenv").config();
 const hre = require("hardhat");
 const BEP20ABI = require("./BEP20.json");
+require("dotenv").config();
 
 // npx hardhat test test/TreasuryTestnet.js --network bsctestnet
-describe("Treasury Role Tests", function () {
-    const treasuryTestnetAddress = "0xba3Ec8d7b4199D78Ac36Dd9094486949aD76B54d";
+describe("Treasury Tests", function () {
+    const treasuryTestnetAddress = "0x73ff9A50Df60320F79E89c01C735A27697D3c266";
     let owner;
     let governor;
     let operator;
 
     beforeEach(async () => {
-        const [_signer, _otherAccount] = await hre.ethers.getSigners();
-        owner = _signer;
-        governor = await hre.ethers.getSigner("0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966");
-        operator = await hre.ethers.getSigner("0x9d356F4DD857fFeF5B5d48DCf30eE4d9574d708D");
+        const signers = await hre.ethers.getSigners();
+        owner = signers[0];
+        governor = signers[1];
+        operator = signers[2];
     });
 
     describe("Access Tests", function () {
@@ -36,13 +37,21 @@ describe("Treasury Role Tests", function () {
                 ).to.be.revertedWithCustomError(_treasury, "AccessControlUnauthorizedAccount");
             });
 
-            it("Non governor or operator should not be able to call governorDisburseToPurseStaking", async () => {
+            it("Non governor should not be able to call governorDisburseToPurseStaking", async () => {
                 await expect(
                     _treasury.governorDisburseToPurseStaking(
                         ethers.parseEther("0")
                     )
                 ).to.be.revertedWithCustomError(_treasury, "AccessControlUnauthorizedAccount");
             });
+
+            it("Non operator should not be able to call operatorDisburseToPurseStaking", async () => {
+                await expect(
+                    _treasury.operatorDisburseToPurseStaking(
+                        ethers.parseEther("0")
+                    )
+                ).to.be.revertedWithCustomError(_treasury, "AccessControlUnauthorizedAccount");
+            })
         });
 
         describe("Non-owner test cases", function () {
@@ -121,18 +130,18 @@ describe("Treasury Role Tests", function () {
                 );
                 await sendTx.wait();
 
-                const treasuryBalanceBefore = await token.balanceOf(treasuryTestnetAddress);
+                const treasuryBalanceTransferred = await token.balanceOf(treasuryTestnetAddress);
                 const depositHistoricTotalBefore = await treasury.depositHistoricTotal();
-                const lastDepositedTreasuryBalanceBefore = await treasury.lastDepositedTreasuryBalanceBefore();
+                const lastDepositedTreasuryBalanceBefore = await treasury.lastDepositedAmount();
 
                 const depositTx = await treasury.depositPurseToTreasury(depositAmount);
                 await depositTx.wait();
 
                 const treasuryBalanceAfter = await token.balanceOf(treasuryTestnetAddress);
                 const depositHistoricTotalAfter = await treasury.depositHistoricTotal();
-                const lastDepositedTreasuryBalanceAfter = await treasury.lastDepositedTreasuryBalanceBefore();
+                const lastDepositedTreasuryBalanceAfter = await treasury.lastDepositedAmount();
 
-                expect(treasuryBalanceAfter).not.equal(treasuryBalanceBefore);
+                expect(treasuryBalanceAfter).to.equal(treasuryBalanceTransferred);
                 expect(depositHistoricTotalAfter).not.equal(depositHistoricTotalBefore);
                 expect(lastDepositedTreasuryBalanceAfter).not.equal(lastDepositedTreasuryBalanceBefore);
             });
@@ -286,13 +295,15 @@ describe("Treasury Role Tests", function () {
             });
 
             it("Treasury should not have any tokens left to disburse", async () => {
-
+                await expect(
+                    treasury.ownerDisburseToPurseStaking(0)
+                ).to.be.revertedWith("Treasury remaining deposit is less than disburse amount");
             });
         });
     });
 
-    describe("GOVERNOR & OPERATOR Disburse Tests", function () {
-        describe("Owner Set operator role", function () {
+    describe("GOVERNOR & OPERATOR Disbursement Tests", function () {
+        describe("Owner set operator role", function () {
             let treasury;
             before(async () => {
                 treasury = await hre.ethers.getContractAt(
@@ -309,239 +320,99 @@ describe("Treasury Role Tests", function () {
                 );
                 const txReceipt = await tx.wait();
                 expect(txReceipt.status).to.equal(1);
+                const test = await treasury.hasRole(
+                    "0x4f50455241544f525f524f4c4500000000000000000000000000000000000000",
+                    "0x9d356F4DD857fFeF5B5d48DCf30eE4d9574d708D"
+                );
+                expect(test).to.equal(true);
             });
         });
 
         describe("Governor's Disbursement", function () {
             let treasury;
+            let token;
             before(async () => {
                 treasury = await hre.ethers.getContractAt(
                     "Treasury",
                     treasuryTestnetAddress,
                     governor
                 );
-            });
-            it("Governor should be able to disburse", async () => {
-                const token = await hre.ethers.getContractAt(
+                token = await hre.ethers.getContractAt(
                     BEP20ABI,
                     await treasury.PURSE(),
                     governor
                 );
-                const depositAmount = ethers.parseEther("1.0");
+            });
+            it("Governor should be able to disburse", async () => {
+                const depositAmount = ethers.parseEther("2.0");
                 const sendTx = await token.transfer(
                     treasuryTestnetAddress,
                     depositAmount
                 );
                 await sendTx.wait();
 
-                //governor disburse 0.5
+                const depositTx = await treasury.depositPurseToTreasury(depositAmount);
+                await depositTx.wait();
+
+                const stakingAddress = await treasury.PURSE_STAKING();
+
+                const stakingBalanceBefore = await token.balanceOf(stakingAddress);
+                const disburseHistoricTotalBefore = await treasury.disburseHistoricTotal();
+                const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
+
+                const tx = await treasury.governorDisburseToPurseStaking(
+                    ethers.parseEther("1.0")
+                );
+                await tx.wait();
+
+                const stakingBalanceAfter = await token.balanceOf(stakingAddress);
+                const disburseHistoricTotalAfter = await treasury.disburseHistoricTotal();
+                const lastDisbursementTimestampAfter = await treasury.lastDisbursementTimestamp();
+
+                expect(stakingBalanceAfter).not.equal(stakingBalanceBefore)
+                expect(disburseHistoricTotalAfter).not.equal(disburseHistoricTotalBefore);
+                expect(lastDisbursementTimestampAfter).not.equal(lastDisbursementTimestampBefore);
             });
         });
 
         describe("Operator's Disbursement", function () {
             let treasury;
+            let token;
             before(async () => {
                 treasury = await hre.ethers.getContractAt(
                     "Treasury",
                     treasuryTestnetAddress,
                     operator
                 );
+                token = await hre.ethers.getContractAt(
+                    BEP20ABI,
+                    await treasury.PURSE(),
+                    operator
+                );
             });
             it("Operator should be able to disburse", async () => {
-                //operator disburse 0.5
+                await new Promise(resolve => setTimeout(resolve, 10000));
+                const stakingAddress = await treasury.PURSE_STAKING();
+
+                const stakingBalanceBefore = await token.balanceOf(stakingAddress);
+                const disburseHistoricTotalBefore = await treasury.disburseHistoricTotal();
+                const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
+
+                const tx = await treasury.operatorDisburseToPurseStaking(
+                    ethers.parseEther("1.0")
+                );
+                await tx.wait();
+
+                const stakingBalanceAfter = await token.balanceOf(stakingAddress);
+                const disburseHistoricTotalAfter = await treasury.disburseHistoricTotal();
+                const lastDisbursementTimestampAfter = await treasury.lastDisbursementTimestamp();
+
+                expect(stakingBalanceAfter).not.equal(stakingBalanceBefore)
+                expect(disburseHistoricTotalAfter).not.equal(disburseHistoricTotalBefore);
+                expect(lastDisbursementTimestampAfter).not.equal(lastDisbursementTimestampBefore);
             });
         })
 
     });
 
-    // describe("Owner test cases", function () {
-    //     it("Should have approval", async () => {
-    //         const token = await hre.ethers.getContractAt(
-    //             BEP20ABI,
-    //             await treasury.PURSE(),
-    //             signer
-    //         );
-    //         const res = await token.allowance(signer.address, treasuryTestnetAddress);
-    //         expect(res).not.equal(BigInt(0))
-    //     })
-
-    //     it("Should be the correct owner", async () => {
-    //         const owner = await treasury.owner();
-    //         expect(owner).to.equal(signer.address)
-    //     })
-
-    //     it("Should update the staking address", async () => {
-    //         const stakingAddr1 = "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd";
-    //         const stakingAddr2 = "0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966"; //acct2
-
-    //         const beforeStakingAddress = await treasury.PURSE_STAKING();
-    //         const tx = await treasury.updateStakingAddress(stakingAddr2);
-    //         await tx.wait();
-    //         const afterStakingAddress = await treasury.PURSE_STAKING();
-    //         expect(afterStakingAddress).not.equal(beforeStakingAddress);
-    //         expect(afterStakingAddress).to.equal(stakingAddr2);
-    //     })
-
-    //     it("Should deposit to treasury", async () => {
-    //         const token = await hre.ethers.getContractAt(
-    //             BEP20ABI,
-    //             await treasury.PURSE(),
-    //             signer
-    //         );
-
-    //         const treasuryBalanceBefore = await token.balanceOf(treasuryTestnetAddress);
-    //         const lastDepositedAmountBefore = await treasury.lastDepositedAmount();
-    //         const depositHistoricTotalBefore = await treasury.depositHistoricTotal();
-    //         const lastDepositTimeStampBefore = await treasury.lastDepositTimestamp();
-
-    //         const depositAmount = ethers.parseEther("1.2")
-    //         const tx = await treasury.depositPurseToTreasury(
-    //             depositAmount
-    //         );
-    //         await tx.wait();
-
-    //         const treasuryBalanceAfter = await token.balanceOf(treasuryTestnetAddress);
-    //         const lastDepositedAmountAfter = await treasury.lastDepositedAmount();
-    //         const depositHistoricTotalAfter = await treasury.depositHistoricTotal();
-    //         const lastDepositTimeStampAfter = await treasury.lastDepositTimestamp();
-
-    //         expect(treasuryBalanceAfter).not.equal(treasuryBalanceBefore);
-    //         expect(lastDepositedAmountAfter).not.equal(lastDepositedAmountBefore);
-    //         expect(lastDepositedAmountAfter).to.equal(depositAmount);
-    //         expect(depositHistoricTotalAfter).to.equal(depositHistoricTotalBefore + depositAmount);
-    //         expect(lastDepositTimeStampAfter).not.equal(lastDepositTimeStampBefore);
-    //     })
-
-    //     it("Should have a default disburse amount", async () => {
-    //         const defaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-    //         console.log(defaultDisburseAmount)
-    //         expect(defaultDisburseAmount).not.equal(BigInt(0))
-    //     })
-
-    //     it("Should be able to disburse once after deploying", async () => {
-    //         //note that treasury only disburses 1/12th of the deposited amount
-    //         const token = await hre.ethers.getContractAt(
-    //             BEP20ABI,
-    //             await treasury.PURSE(),
-    //             signer
-    //         );
-    //         const stakingAddress = await treasury.PURSE_STAKING();
-
-    //         const stakingBalanceBefore = await token.balanceOf(stakingAddress);
-    //         const lastDisbursedAmountBefore = await treasury.lastDisbursedAmount();
-    //         const disburseHistoricTotalBefore = await treasury.disburseHistoricTotal();
-    //         const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
-
-    //         const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-    //         const tx = await treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount);
-    //         await tx.wait();
-
-    //         const stakingBalanceAfter = await token.balanceOf(stakingAddress);
-    //         const lastDisbursedAmountAfter = await treasury.lastDisbursedAmount();
-    //         const disburseHistoricTotalAfter = await treasury.disburseHistoricTotal();
-    //         const lastDisbursementTimestampAfter = await treasury.lastDisbursementTimestamp();
-
-    //         expect(stakingBalanceAfter).not.equal(stakingBalanceBefore)
-    //         expect(lastDisbursedAmountAfter).not.equal(lastDisbursedAmountBefore);
-    //         expect(disburseHistoricTotalAfter).not.equal(disburseHistoricTotalBefore);
-    //         expect(lastDisbursementTimestampAfter).not.equal(lastDisbursementTimestampBefore);
-    //     })
-
-    //     it("Should not be able to disburse before the interval", async () => {
-    //         const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-    //         await expect(
-    //             treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount)
-    //         ).to.be.revertedWith("Disbursement interval not reached");
-    //     })
-
-
-    //     it("Should update the disburseInterval value", async () => {
-    //         //in seconds: 1 min = BigInt(60)
-    //         //30 days is BigInt(2592000)
-    //         const newInterval = BigInt(1)
-    //         const tx = await treasury.updateDisburseInterval(newInterval);
-    //         await tx.wait();
-    //         const disburseInterval = await treasury.disburseInterval();
-    //         expect(disburseInterval).to.equal(newInterval);
-    //     })
-
-    //     it("Should not be able to disburse due to input amount exceeding balance", async () => {
-    //         await expect(
-    //             treasury.ownerDisburseToPurseStaking(
-    //                 ethers.parseEther("100")
-    //             )
-    //         ).to.be.revertedWith("Input disburse amount exceeds remaining deposit in Treasury")
-    //     })
-
-    //     it("Should be able to disburse after the interval", async () => {
-    //         //note that treasury only disburses 1/12th of the deposited amount
-    //         const token = await hre.ethers.getContractAt(
-    //             BEP20ABI,
-    //             await treasury.PURSE(),
-    //             signer
-    //         );
-    //         const stakingAddress = await treasury.PURSE_STAKING();
-
-    //         const stakingBalanceBefore = await token.balanceOf(stakingAddress);
-    //         const lastDisbursedAmountBefore = await treasury.lastDisbursedAmount();
-    //         const disburseHistoricTotalBefore = await treasury.disburseHistoricTotal();
-    //         const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
-
-    //         const currentDefaultDisburseAmount = await treasury.currentDefaultDisburseAmount()
-    //         const tx = await treasury.ownerDisburseToPurseStaking(currentDefaultDisburseAmount);
-    //         await tx.wait();
-
-    //         const stakingBalanceAfter = await token.balanceOf(stakingAddress);
-    //         const lastDisbursedAmountAfter = await treasury.lastDisbursedAmount();
-    //         const disburseHistoricTotalAfter = await treasury.disburseHistoricTotal();
-    //         const lastDisbursementTimestampAfter = await treasury.lastDisbursementTimestamp();
-
-    //         expect(stakingBalanceAfter).not.equal(stakingBalanceBefore)
-    //         expect(lastDisbursedAmountAfter).to.equal(lastDisbursedAmountBefore);
-    //         expect(disburseHistoricTotalAfter).not.equal(disburseHistoricTotalBefore);
-    //         expect(lastDisbursementTimestampAfter).not.equal(lastDisbursementTimestampBefore);
-    //     })
-
-    //     it("Should not be able to disburse due to remaining deposit less than default disburse amount", async () => {
-    //         const token = await hre.ethers.getContractAt(
-    //             BEP20ABI,
-    //             await treasury.PURSE(),
-    //             signer
-    //         );
-    //         const treasuryBalance = await token.balanceOf(treasuryTestnetAddress);
-    //         const tx = await treasury.returnToken(
-    //             await treasury.PURSE(),
-    //             signer.address,
-    //             BigInt(treasuryBalance) - BigInt(ethers.parseEther("0.05"))
-    //         )
-    //         await tx.wait();
-    //         await expect(
-    //             treasury.ownerDisburseToPurseStaking(0)
-    //         ).to.be.revertedWith("Treasury remaining deposit is less than default disburse amount")
-    //     })
-
-    //     it("Should be able to return tokens from treasury", async () => {
-    //         //return remaining deposit
-    //         const token = await hre.ethers.getContractAt(
-    //             BEP20ABI,
-    //             await treasury.PURSE(),
-    //             signer
-    //         );
-    //         const treasuryBalanceBefore = await token.balanceOf(treasuryTestnetAddress);
-    //         const tx = await treasury.returnToken(
-    //             await treasury.PURSE(),
-    //             otherAccount.address,
-    //             treasuryBalanceBefore
-    //         );
-    //         await tx.wait();
-    //         const treasuryBalanceAfter = await token.balanceOf(treasuryTestnetAddress);
-    //         expect(treasuryBalanceAfter).to.equal(BigInt(0));
-    //     })
-
-    //     it("Should not have any tokens left to disburse", async () => {
-    //         await expect(
-    //             treasury.ownerDisburseToPurseStaking(0)
-    //         ).to.be.revertedWith("Insufficient deposit in Treasury");
-    //     })
-    // })
 })
