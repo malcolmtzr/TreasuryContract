@@ -13,18 +13,16 @@ contract Treasury is Initializable, UUPSUpgradeable, Governable {
     //PURSE: 0x29a63F4B209C29B4DC47f06FFA896F32667DAD2C (mainnet)
     address public constant PURSE = 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd;
     address public PURSE_STAKING;
-    uint256 public depositHistoricTotal;
     uint256 public disburseHistoricTotal;
-    uint256 public lastDepositedAmount;
-    // uint256 public lastDepositTimestamp;
-    //uint256 public lastDepositedTreasuryBalance;
-    // uint256 public lastDisbursedAmount;
+    uint256 public lastUpdatedTimestamp;
+    uint256 public lastUpdatedTreasuryBalance;
     uint256 public lastDisbursementTimestamp;
     uint256 public disburseInterval;
     uint256 public range;
+    uint256 internal defaultDisbursePerInterval;
 
     event UpdateDisburseInterval(uint256 indexed _days);
-    event DepositPurseToTreasury(address indexed _sender, uint256 indexed _time, uint256 indexed _amount);
+    event UpdatePurseTreasury(address indexed _sender, uint256 indexed _time, uint256 indexed _amount);
     event DisburseToPurseStaking(uint256 indexed _time, uint256 indexed _amount);
     event ReturnToken(address indexed _recipient, uint256 indexed _amount);
 
@@ -37,36 +35,37 @@ contract Treasury is Initializable, UUPSUpgradeable, Governable {
         __UUPSUpgradeable_init();
     }
 
-    /**************************************** ONLY GOVERNOR_ROLE & OPERATOR_ROLE FUNCTIONS ****************************************/
+    /**************************************** ONLY GOVERNOR_ROLE FUNCTIONS ****************************************/
     //Governor only
-    function depositPurseToTreasury(uint256 _amount) external onlyRole(GOVERNOR_ROLE) {
-        require(_amount > 0, "Amount must be more than 0");
-        require(
-            _amount <= IERC20(PURSE).balanceOf(address(this)), 
-            "Input amount exceeded treasury balance"
-        );
+    function updatePurseTreasury(bool _updateLastDisbursementTimestamp) external onlyRole(GOVERNOR_ROLE) {
+        lastUpdatedTreasuryBalance = IERC20(PURSE).balanceOf(address(this));
+        lastUpdatedTimestamp = block.timestamp;
+        defaultDisbursePerInterval = lastUpdatedTreasuryBalance / range;
 
-        lastDepositedAmount = _amount;
-        depositHistoricTotal += _amount;
-        emit DepositPurseToTreasury(msg.sender, block.timestamp, _amount);
+        if(_updateLastDisbursementTimestamp == true) {
+            lastDisbursementTimestamp = block.timestamp; //should this block be removed?
+        }
+        
+        emit UpdatePurseTreasury(msg.sender, block.timestamp, lastUpdatedTreasuryBalance);
     }
 
+    /**************************************** ONLY OPERATOR_ROLE FUNCTIONS ****************************************/
     //Any address assigned OPERATOR_ROLE
-    function operatorDisburseToPurseStaking(uint256 _reqAmount) external onlyRole(OPERATOR_ROLE) {
+    function disburseToPurseStaking() external onlyRole(OPERATOR_ROLE) {
         require(
             block.timestamp > lastDisbursementTimestamp + disburseInterval,
             "Disbursement interval not reached"
         );
-        uint256 treasuryBalance = IERC20(PURSE).balanceOf(address(this));
+        uint256 treasuryBal = IERC20(PURSE).balanceOf(address(this));
         
-        uint256 defaultDisburseAmount = currentDefaultDisburseAmount();
-        uint256 disburseAmount = (_reqAmount > 0) ? _reqAmount : defaultDisburseAmount;
+        uint256 disburseAmount = defaultDisbursePerInterval;
         require(disburseAmount > 0, "Amount must be more than 0");
-        require(disburseAmount <= treasuryBalance, "Treasury remaining deposit is less than disburse amount");
+        require(disburseAmount <= treasuryBal, "Treasury remaining deposit is less than disburse amount");
 
         IERC20(PURSE).safeTransfer(PURSE_STAKING, disburseAmount);
         lastDisbursementTimestamp = block.timestamp;
         disburseHistoricTotal += disburseAmount;
+
         emit DisburseToPurseStaking(lastDisbursementTimestamp, disburseAmount);
     }
 
@@ -78,23 +77,23 @@ contract Treasury is Initializable, UUPSUpgradeable, Governable {
             block.timestamp > lastDisbursementTimestamp + disburseInterval,
             "Disbursement interval not reached"
         );
-        uint256 treasuryBalance = IERC20(PURSE).balanceOf(address(this));
+        uint256 treasuryBal = IERC20(PURSE).balanceOf(address(this));
         
-        uint256 defaultDisburseAmount = currentDefaultDisburseAmount();
-        uint256 disburseAmount = (_amount > 0) ? _amount : defaultDisburseAmount;
+        uint256 disburseAmount = (_amount > 0) ? _amount : defaultDisbursePerInterval;
         require(disburseAmount > 0, "Amount must be more than 0");
-        require(disburseAmount <= treasuryBalance, "Treasury remaining deposit is less than disburse amount");
+        require(disburseAmount <= treasuryBal, "Treasury remaining deposit is less than disburse amount");
         
         IERC20(PURSE).safeTransfer(PURSE_STAKING, disburseAmount);
         lastDisbursementTimestamp = block.timestamp;
         disburseHistoricTotal += disburseAmount;
+
         emit DisburseToPurseStaking(lastDisbursementTimestamp, disburseAmount);
     }    
     
     function _authorizeUpgrade(address newImplementation) internal onlyRole(OWNER_ROLE) override {}
 
-    function updateMonthRange(uint256 _months) external onlyRole(OWNER_ROLE) {
-        require(_months <= 12, "Months cannot exceed 12");
+    function updateDisburseRange(uint256 _months) external onlyRole(OWNER_ROLE) {
+        require(_months != 0, "Disburse range cannot be 0");
         range = _months;
     }
 
@@ -118,11 +117,15 @@ contract Treasury is Initializable, UUPSUpgradeable, Governable {
 
     /**************************************** VIEW FUNCTIONS ****************************************/
     
-    function currentDefaultDisburseAmount() public view returns (uint256) {
-        return lastDepositedAmount / range;
+    function currentDisburseAmount() external view returns (uint256) {
+        return defaultDisbursePerInterval;
     }
 
-    function getTreasuryBalance() external view returns (uint256) {
+    function depositHistoricTotal() external view returns (uint256) {
+        return disburseHistoricTotal + IERC20(PURSE).balanceOf(address(this));
+    }
+
+    function TreasuryBalance() external view returns (uint256) {
         return IERC20(PURSE).balanceOf(address(this));
     }
 }
