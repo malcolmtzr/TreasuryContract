@@ -6,7 +6,7 @@ require("dotenv").config();
 
 // npx hardhat test test/TreasuryTestnet.js --network bsctestnet
 describe("Treasury Tests", function () {
-    const treasuryTestnetAddress = "0x73ff9A50Df60320F79E89c01C735A27697D3c266";
+    const treasuryTestnetAddress = "0x0C1691F11F7E0E65eD7Db49f99D4a4C8dc446A7D";
     let owner;
     let governor;
     let operator;
@@ -21,7 +21,7 @@ describe("Treasury Tests", function () {
     describe("Access Tests", function () {
         describe("Non-governor/operator test cases", function () {
             let _treasury;
-            this.beforeEach(async () => {
+            beforeEach(async () => {
                 _treasury = await hre.ethers.getContractAt(
                     "Treasury",
                     treasuryTestnetAddress,
@@ -29,28 +29,50 @@ describe("Treasury Tests", function () {
                 );
             });
 
-            it("Non governor should not be able to call depositPurseToTreasury", async () => {
+            it("Non governor role should not be able to call depositPurseToTreasury", async () => {
                 await expect(
                     _treasury.depositPurseToTreasury(
                         ethers.parseEther("1.2")
                     )
                 ).to.be.revertedWithCustomError(_treasury, "AccessControlUnauthorizedAccount");
-            });
-
-            it("Non governor should not be able to call governorDisburseToPurseStaking", async () => {
+                let _treasury0 = await hre.ethers.getContractAt(
+                    "Treasury",
+                    treasuryTestnetAddress,
+                    operator
+                );
                 await expect(
-                    _treasury.governorDisburseToPurseStaking(
-                        ethers.parseEther("0")
+                    _treasury0.depositPurseToTreasury(
+                        ethers.parseEther("1.2")
                     )
-                ).to.be.revertedWithCustomError(_treasury, "AccessControlUnauthorizedAccount");
+                ).to.be.revertedWithCustomError(_treasury0, "AccessControlUnauthorizedAccount");
             });
 
-            it("Non operator should not be able to call operatorDisburseToPurseStaking", async () => {
+            it("Non operator role should not be able to call operatorDisburseToPurseStaking", async () => {
                 await expect(
                     _treasury.operatorDisburseToPurseStaking(
                         ethers.parseEther("0")
                     )
                 ).to.be.revertedWithCustomError(_treasury, "AccessControlUnauthorizedAccount");
+                let _treasury0 = await hre.ethers.getContractAt(
+                    "Treasury",
+                    treasuryTestnetAddress,
+                    operator //operator is not assigned operator role yet
+                );
+                await expect(
+                    _treasury0.operatorDisburseToPurseStaking(
+                        ethers.parseEther("0")
+                    )
+                ).to.be.revertedWithCustomError(_treasury0, "AccessControlUnauthorizedAccount");
+                let _treasury1 = await hre.ethers.getContractAt(
+                    "Treasury",
+                    treasuryTestnetAddress,
+                    governor //governor is not assigned operator role yet
+                );
+                await expect(
+                    _treasury1.operatorDisburseToPurseStaking(
+                        ethers.parseEther("0")
+                    )
+                ).to.be.revertedWithCustomError(_treasury1, "AccessControlUnauthorizedAccount");
             })
         });
 
@@ -304,16 +326,31 @@ describe("Treasury Tests", function () {
 
     describe("GOVERNOR & OPERATOR Disbursement Tests", function () {
         describe("Owner set operator role", function () {
+            const OPERATOR_ROLE = "0x4f50455241544f525f524f4c4500000000000000000000000000000000000000";
             let treasury;
-            before(async () => {
+            beforeEach(async () => {
                 treasury = await hre.ethers.getContractAt(
                     "Treasury",
                     treasuryTestnetAddress,
                     owner
                 );
             });
-            it("Owner should be able set operator role", async () => {
-                const OPERATOR_ROLE = "0x4f50455241544f525f524f4c4500000000000000000000000000000000000000";
+
+            it("Owner should be able set operator role for the governor", async () => {
+                const tx = await treasury.grantRole(
+                    OPERATOR_ROLE,
+                    governor.address
+                );
+                const txReceipt = await tx.wait();
+                expect(txReceipt.status).to.equal(1);
+                const test = await treasury.hasRole(
+                    OPERATOR_ROLE,
+                    governor.address
+                );
+                expect(test).to.equal(true);
+            });
+
+            it("Owner should be able to set operator role for the operator", async () => {
                 const tx = await treasury.grantRole(
                     OPERATOR_ROLE,
                     operator.address
@@ -321,8 +358,8 @@ describe("Treasury Tests", function () {
                 const txReceipt = await tx.wait();
                 expect(txReceipt.status).to.equal(1);
                 const test = await treasury.hasRole(
-                    "0x4f50455241544f525f524f4c4500000000000000000000000000000000000000",
-                    "0x9d356F4DD857fFeF5B5d48DCf30eE4d9574d708D"
+                    OPERATOR_ROLE,
+                    operator.address
                 );
                 expect(test).to.equal(true);
             });
@@ -360,7 +397,7 @@ describe("Treasury Tests", function () {
                 const disburseHistoricTotalBefore = await treasury.disburseHistoricTotal();
                 const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
 
-                const tx = await treasury.governorDisburseToPurseStaking(
+                const tx = await treasury.operatorDisburseToPurseStaking(
                     ethers.parseEther("1.0")
                 );
                 await tx.wait();
