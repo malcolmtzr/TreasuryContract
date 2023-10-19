@@ -50,25 +50,8 @@ contract Treasury is Initializable, UUPSUpgradeable, Governable {
         depositHistoricTotal += _amount;
         emit DepositPurseToTreasury(msg.sender, block.timestamp, _amount);
     }
-    //Governor
-    function governorDisburseToPurseStaking(uint256 _reqAmount) external onlyRole(GOVERNOR_ROLE) {
-        require(
-            block.timestamp > lastDisbursementTimestamp + disburseInterval,
-            "Disbursement interval not reached"
-        );
-        uint256 treasuryBalance = IERC20(PURSE).balanceOf(address(this));
-        
-        uint256 defaultDisburseAmount = currentDefaultDisburseAmount();
-        uint256 disburseAmount = (_reqAmount > 0) ? _reqAmount : defaultDisburseAmount;
-        require(disburseAmount > 0, "Amount must be more than 0");
-        require(disburseAmount <= treasuryBalance, "Treasury remaining deposit is less than disburse amount");
 
-        IERC20(PURSE).safeTransfer(PURSE_STAKING, disburseAmount);
-        lastDisbursementTimestamp = block.timestamp;
-        disburseHistoricTotal += disburseAmount;
-        emit DisburseToPurseStaking(lastDisbursementTimestamp, disburseAmount);
-    }
-    //Operator
+    //Any address assigned OPERATOR_ROLE
     function operatorDisburseToPurseStaking(uint256 _reqAmount) external onlyRole(OPERATOR_ROLE) {
         require(
             block.timestamp > lastDisbursementTimestamp + disburseInterval,
