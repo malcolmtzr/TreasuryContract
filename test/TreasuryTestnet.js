@@ -6,7 +6,7 @@ require("dotenv").config();
 
 // npx hardhat test test/TreasuryTestnet.js --network bsctestnet
 describe("Treasury Tests", function () {
-    const treasuryTestnetAddress = "0x0C1691F11F7E0E65eD7Db49f99D4a4C8dc446A7D";
+    const treasuryTestnetAddress = "0xAd8dbc55C3Ce5DedfBBD81d72Cc7C69ad2E12965";
     let owner;
     let governor;
     let operator;
@@ -143,7 +143,7 @@ describe("Treasury Tests", function () {
                 const lastUpdatedTimestampBefore = await treasury.lastUpdatedTimestamp();
                 const lastUpdatedTreasuryBalanceBefore = await treasury.lastUpdatedTreasuryBalance();
                 const lastDisbursementTimestampBefore = await treasury.lastDisbursementTimestamp();
-                const defaultDisbursePerIntervalBefore = await treasury.defaultDisbursePerInterval();
+                const currentDisburseAmountBefore = await treasury.currentDisburseAmount();
 
                 const updateTx = await treasury.updatePurseTreasury(false);
                 await updateTx.wait();
@@ -153,14 +153,14 @@ describe("Treasury Tests", function () {
                 const lastUpdatedTimestampAfter = await treasury.lastUpdatedTimestamp();
                 const lastUpdatedTreasuryBalanceAfter = await treasury.lastUpdatedTreasuryBalance();
                 const lastDisbursementTimestampAfter = await treasury.lastDisbursementTimestamp();
-                const defaultDisbursePerIntervalAfter = await treasury.defaultDisbursePerInterval();
+                const currentDisburseAmountAfter = await treasury.currentDisburseAmount();
 
                 expect(treasuryBalanceAfter).to.equal(treasuryBalanceTransferred);
                 expect(depositHistoricTotalAfter).to.equal(depositHistoricTotalBefore);
                 expect(lastUpdatedTimestampAfter).not.equal(lastUpdatedTimestampBefore);
                 expect(lastUpdatedTreasuryBalanceAfter).not.equal(lastUpdatedTreasuryBalanceBefore);
                 expect(lastDisbursementTimestampAfter).to.equal(lastDisbursementTimestampBefore);
-                expect(defaultDisbursePerIntervalAfter).not.equal(defaultDisbursePerIntervalBefore);
+                expect(currentDisburseAmountAfter).not.equal(currentDisburseAmountBefore);
             });
 
             it("Treasury should have a non zero currentDisburseAmount", async () => {

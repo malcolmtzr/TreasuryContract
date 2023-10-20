@@ -43,7 +43,7 @@ contract Treasury is Initializable, UUPSUpgradeable, Governable {
         defaultDisbursePerInterval = lastUpdatedTreasuryBalance / range;
 
         if(_updateLastDisbursementTimestamp == true) {
-            lastDisbursementTimestamp = block.timestamp; //should this block be removed?
+            lastDisbursementTimestamp = block.timestamp;
         }
         
         emit UpdatePurseTreasury(msg.sender, block.timestamp, lastUpdatedTreasuryBalance);
