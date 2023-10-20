@@ -10,8 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 contract Treasury is Initializable, UUPSUpgradeable, Governable {
     using SafeERC20 for IERC20;
 
-    //PURSE: 0x29a63F4B209C29B4DC47f06FFA896F32667DAD2C (mainnet)
-    address public constant PURSE = 0x337610d27c682E347C9cD60BD4b3b107C9d34dDd;
+    address public constant PURSE = 0x29a63F4B209C29B4DC47f06FFA896F32667DAD2C;
     address public PURSE_STAKING;
     uint256 public disburseHistoricTotal;
     uint256 public lastUpdatedTimestamp;
