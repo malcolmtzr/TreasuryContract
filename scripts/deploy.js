@@ -32,7 +32,7 @@ async function main() {
     Treasury,
     [
       "0x2027E055201E26b1bFE33Eb923b3fdb7E6f30807",
-      "0xAbCCf019ce52e7DEac396D1f1A1D9087EBF97966"
+      "0x2027E055201E26b1bFE33Eb923b3fdb7E6f30807"
     ]
   );
   await treasury.waitForDeployment();
